@@ -10,21 +10,16 @@ function Navigation({ active, setActive }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userAvatar, setUserAvatar] = useState(avatar);
 
-  // 🔹 Toggle hamburger menu
-  const handleToggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  // Toggle hamburger menu
+  const handleToggleMenu = () => setMenuOpen(!menuOpen);
 
-  // 🔹 Upload avatar
+  // Upload avatar
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setUserAvatar(imageUrl);
-    }
+    if (file) setUserAvatar(URL.createObjectURL(file));
   };
 
-  // 🔹 Logout function (MERN backend)
+  // Logout
   const handleLogout = async () => {
     try {
       await axios.post("/api/auth/logout");
@@ -37,7 +32,7 @@ function Navigation({ active, setActive }) {
 
   return (
     <NavStyled>
-      {/* Top Section */}
+      {/* User Section */}
       <div className="user-con">
         <div className="avatar-con">
           <label htmlFor="avatar-upload">
@@ -48,15 +43,18 @@ function Navigation({ active, setActive }) {
             id="avatar-upload"
             accept="image/*"
             onChange={handleAvatarUpload}
+            aria-label="Upload Avatar"
           />
         </div>
         <div className="text">
           <h2>Bhavna</h2>
           <p>Your Money</p>
         </div>
-
-        {/* Hamburger Icon for Mobile */}
-        <div className="menu-toggle" onClick={handleToggleMenu}>
+        <div
+          className="menu-toggle"
+          onClick={handleToggleMenu}
+          aria-label="Toggle Menu"
+        >
           {menuOpen ? <X size={26} /> : <Menu size={26} />}
         </div>
       </div>
@@ -66,11 +64,11 @@ function Navigation({ active, setActive }) {
         {menuItems.map((item) => (
           <li
             key={item.id}
+            className={active === item.id ? "active" : ""}
             onClick={() => {
               setActive(item.id);
               setMenuOpen(false);
             }}
-            className={active === item.id ? "active" : ""}
           >
             {item.icon}
             <span>{item.title}</span>
@@ -93,9 +91,9 @@ function Navigation({ active, setActive }) {
 export default Navigation;
 
 const NavStyled = styled.nav`
-  padding: 2rem 1.5rem;
   width: 374px;
   height: 100vh;
+  padding: 2rem 1.5rem;
   background: rgba(252, 246, 249, 0.78);
   border: 3px solid #ffffff;
   backdrop-filter: blur(4.5px);
@@ -110,7 +108,6 @@ const NavStyled = styled.nav`
 
   /* USER SECTION */
   .user-con {
-    height: 100px;
     display: flex;
     align-items: center;
     gap: 1rem;
@@ -130,7 +127,7 @@ const NavStyled = styled.nav`
         cursor: pointer;
         transition: all 0.3s ease;
         &:hover {
-          opacity: 0.8;
+          opacity: 0.85;
         }
       }
       input {
@@ -141,7 +138,7 @@ const NavStyled = styled.nav`
     .text {
       h2 {
         color: rgba(34, 34, 96, 1);
-        font-size: 1.2rem;
+        font-size: 1rem;
       }
       p {
         color: rgba(34, 34, 96, 0.6);
@@ -166,24 +163,31 @@ const NavStyled = styled.nav`
     flex: 1;
     display: flex;
     flex-direction: column;
+    max-height: 100%;
     overflow-y: auto;
     transition: max-height 0.3s ease;
+
     li {
       display: grid;
       grid-template-columns: 40px auto;
       align-items: center;
       margin: 0.6rem 0;
-      font-weight: 500;
+      font-weight: 200;
       cursor: pointer;
-      transition: all 0.4s ease-in-out;
-      color: rgba(34, 34, 96, 0.6);
       padding-left: 1rem;
       position: relative;
+      color: rgba(34, 34, 96, 0.6);
+      transition: all 0.4s ease-in-out;
+
       i {
         color: rgba(34, 34, 96, 0.6);
         font-size: 1.4rem;
         transition: all 0.4s ease-in-out;
       }
+    }
+
+    &.show {
+      max-height: 500px; /* smooth expand */
     }
   }
 
@@ -225,7 +229,7 @@ const NavStyled = styled.nav`
     }
   }
 
-  /* 📱 MOBILE STYLES */
+  /* MOBILE STYLES */
   @media (max-width: 900px) {
     width: 100%;
     height: auto;
@@ -234,7 +238,6 @@ const NavStyled = styled.nav`
     flex-direction: column;
 
     .user-con {
-      height: auto;
       img {
         width: 56px;
         height: 56px;
@@ -245,29 +248,29 @@ const NavStyled = styled.nav`
     }
 
     .menu-items {
-      display: none;
-      &.show {
-        display: flex;
-        flex-direction: column;
-        margin-top: 1rem;
-        background: rgba(252, 246, 249, 0.95);
-        border-radius: 20px;
-        padding: 1rem;
-        box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
-      }
+      max-height: 0;
+      overflow: hidden;
+      background: rgba(252, 246, 249, 0.95);
+      border-radius: 20px;
+      padding: 1rem;
+      margin-top: 1rem;
+      box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
+
       li {
         margin: 0.5rem 0;
         padding-left: 0.5rem;
       }
+
+      &.show {
+        max-height: 500px; /* expand smoothly */
+      }
     }
 
-    .bottom-nav {
-      ul {
-        display: flex;
-        justify-content: center;
-      }
+    .bottom-nav ul {
+      display: flex;
+      justify-content: center;
       li {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
       }
     }
   }
