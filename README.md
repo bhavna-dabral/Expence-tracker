@@ -1,6 +1,6 @@
 # MERN Expense Tracker 💰
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)  
+
 [![Node.js](https://img.shields.io/badge/Node.js-14.x-green)](https://nodejs.org/)  
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB-blue)](https://www.mongodb.com/)  
 [![React](https://img.shields.io/badge/Frontend-React-blueviolet)](https://reactjs.org/)  
