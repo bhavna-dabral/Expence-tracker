@@ -5,7 +5,8 @@
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB-blue)](https://www.mongodb.com/)  
 [![React](https://img.shields.io/badge/Frontend-React-blueviolet)](https://reactjs.org/)  
 [![Backend](https://img.shields.io/badge/Backend-Node.js-green)](https://nodejs.org/)  
-[![Progress](https://github.com/bhavna-dabral/Expence-tracke)
+[![Progress](https://img.shields.io/badge/Progress-WIP-red)](https://github.com/bhavna-dabral/Expence-tracke)
+
 
 A **MERN stack Expense Tracker** for managing personal finances.  
 Most core features are implemented; remaining tasks are **user authentication** and **deployment**.
