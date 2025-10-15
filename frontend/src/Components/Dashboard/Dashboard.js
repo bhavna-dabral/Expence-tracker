@@ -81,7 +81,11 @@ function Dashboard() {
 }
 
 const DashboardStyled = styled.div`
-  h1 { font-size: 2rem; margin-bottom: 1.5rem; }
+  
+  h1 { 
+    font-size: 2rem; 
+    margin-bottom: 1.5rem; 
+  }
 
   .stats-con {
     display: flex;
@@ -102,6 +106,7 @@ const DashboardStyled = styled.div`
           padding: 1rem;
           border-radius: 15px;
           text-align: center;
+          flex: 1;
         }
       }
     }
@@ -138,6 +143,56 @@ const DashboardStyled = styled.div`
       }
     }
   }
+
+  /* Mobile view */
+  @media (max-width: 768px) {
+    .stats-con {
+      flex-direction: column; /* stack chart + history */
+    }
+
+    .chart-con {
+      .amount-con {
+        flex-direction: column;
+        gap: 0.5rem;
+
+        .income, .expense, .balance {
+          width: 100%;
+        }
+      }
+    }
+
+    .history-con {
+      max-height: none; /* allow full scroll */
+      padding: 0.75rem;
+    }
+  }
+
+  /* Smaller mobile view */
+  @media (max-width: 480px) {
+    h1 { font-size: 1.5rem; }
+
+    .chart-con .amount-con {
+      gap: 0.25rem;
+      .income, .expense, .balance {
+        padding: 0.75rem;
+      }
+    }
+
+    .history-con {
+      padding: 0.5rem;
+
+      .transaction {
+        flex-direction: column;
+        align-items: flex-start;
+
+        .right {
+          text-align: left;
+          margin-top: 0.25rem;
+        }
+      }
+    }
+  }
 `;
+
 
 export default Dashboard;
