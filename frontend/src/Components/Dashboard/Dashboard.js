@@ -25,55 +25,58 @@ function Dashboard() {
   return (
     <DashboardStyled>
       <InnerLayout>
-        <h1>All Transactions</h1>
+        <h1>📊 Dashboard Overview</h1>
 
-        <div className="stats-con">
-          {/* Chart & totals */}
-          <div className="chart-con">
-            <Chart />
-            <div className="amount-con">
-              <div className="income">
-                <h2>Total Income</h2>
-                <p>{dollar} {totalIncome()}</p>
-              </div>
-              <div className="expense">
-                <h2>Total Expense</h2>
-                <p>{dollar} {totalExpenses()}</p>
-              </div>
-              <div className="balance">
-                <h2>Total Balance</h2>
-                <p>{dollar} {totalBalance()}</p>
-              </div>
-            </div>
+        {/* === Summary Section === */}
+        <div className="summary-grid">
+          <div className="card income">
+            <h3>Total Income</h3>
+            <p>{dollar} {totalIncome()}</p>
           </div>
+          <div className="card expense">
+            <h3>Total Expense</h3>
+            <p>{dollar} {totalExpenses()}</p>
+          </div>
+          <div className="card balance">
+            <h3>Total Balance</h3>
+            <p>{dollar} {totalBalance()}</p>
+          </div>
+        </div>
 
-          {/* Transaction history */}
-          <div className="history-con">
-            <h2>Recent Transactions</h2>
-            {history.length > 0 ? (
-              <div className="transactions">
-                {history.map((item) => (
-                  <div
-                    key={item._id}
-                    className={`transaction ${item.type === "income" ? "income" : "expense"}`}
-                  >
-                    <div className="left">
-                      <p className="title">{item.title}</p>
-                      <p className="category">{item.category}</p>
-                    </div>
-                    <div className="right">
-                      <p className="amount">
-                        {item.type === "income" ? "+" : "-"} {dollar} {item.amount}
-                      </p>
-                      <p className="date">{new Date(item.date).toLocaleDateString()}</p>
-                    </div>
+        {/* === Chart Section === */}
+        <div className="chart-card">
+          <Chart />
+        </div>
+
+        {/* === Recent Transactions === */}
+        <div className="history-section">
+          <h2>Recent Transactions</h2>
+
+          {history.length > 0 ? (
+            <div className="transactions">
+              {history.map((item) => (
+                <div
+                  key={item._id}
+                  className={`transaction ${item.type}`}
+                >
+                  <div className="left">
+                    <p className="title">{item.title}</p>
+                    <p className="category">{item.category}</p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p>No transactions yet</p>
-            )}
-          </div>
+                  <div className="right">
+                    <p className="amount">
+                      {item.type === "income" ? "+" : "-"} {dollar} {item.amount}
+                    </p>
+                    <p className="date">
+                      {new Date(item.date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="no-transactions">No transactions yet.</p>
+          )}
         </div>
       </InnerLayout>
     </DashboardStyled>
@@ -81,118 +84,142 @@ function Dashboard() {
 }
 
 const DashboardStyled = styled.div`
-  
-  h1 { 
-    font-size: 2rem; 
-    margin-bottom: 1.5rem; 
+  h1 {
+    font-size: 2rem;
+    color: #222260;
+    margin-bottom: 2.5rem;
+    text-align: center;
   }
 
-  .stats-con {
-    display: flex;
-    gap: 2rem;
+  /* === Summary Grid === */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 
-    .chart-con {
-      flex: 2;
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      transition: 0.3s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      }
+
+      h3 {
+        color: #555;
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      p {
+        font-size: 1.6rem;
+        font-weight: 700;
+      }
+
+      &.income p {
+        color: #00b09b;
+      }
+
+      &.expense p {
+        color: #ff4b2b;
+      }
+
+      &.balance p {
+        color: #007bff;
+      }
+    }
+  }
+
+  /* === Chart Card === */
+  .chart-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  /* === Recent Transactions === */
+  .history-section {
+    h2 {
+      font-size: 1.4rem;
+      color: #222260;
+      margin-bottom: 1.5rem;
+    }
+
+    .transactions {
       display: flex;
       flex-direction: column;
       gap: 1rem;
 
-      .amount-con {
-        display: flex;
-        gap: 1rem;
-
-        .income, .expense, .balance {
-          background: #fcf6f9;
-          padding: 1rem;
-          border-radius: 15px;
-          text-align: center;
-          flex: 1;
-        }
-      }
-    }
-
-    .history-con {
-      flex: 1;
-      background: #fcf6f9;
-      padding: 1rem;
-      border-radius: 15px;
-      max-height: 500px;
-      overflow-y: auto;
-
-      .transactions {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-
-        .transaction {
-          display: flex;
-          justify-content: space-between;
-          padding: 0.5rem;
-          border-radius: 8px;
-          background: #fff;
-
-          &.income { border-left: 4px solid green; }
-          &.expense { border-left: 4px solid red; }
-
-          .left { display: flex; flex-direction: column; }
-          .right { text-align: right; }
-
-          .amount { font-weight: bold; }
-          .date { font-size: 0.8rem; color: #555; }
-        }
-      }
-    }
-  }
-
-  /* Mobile view */
-  @media (max-width: 768px) {
-    .stats-con {
-      flex-direction: column; /* stack chart + history */
-    }
-
-    .chart-con {
-      .amount-con {
-        flex-direction: column;
-        gap: 0.5rem;
-
-        .income, .expense, .balance {
-          width: 100%;
-        }
-      }
-    }
-
-    .history-con {
-      max-height: none; /* allow full scroll */
-      padding: 0.75rem;
-    }
-  }
-
-  /* Smaller mobile view */
-  @media (max-width: 480px) {
-    h1 { font-size: 1.5rem; }
-
-    .chart-con .amount-con {
-      gap: 0.25rem;
-      .income, .expense, .balance {
-        padding: 0.75rem;
-      }
-    }
-
-    .history-con {
-      padding: 0.5rem;
-
       .transaction {
-        flex-direction: column;
-        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #fff;
+        border-left: 5px solid transparent;
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: 0.3s ease;
+
+        &:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        &.income {
+          border-left-color: #00b09b;
+        }
+
+        &.expense {
+          border-left-color: #ff4b2b;
+        }
+
+        .left {
+          .title {
+            font-weight: 600;
+            color: #222260;
+          }
+
+          .category {
+            font-size: 0.85rem;
+            color: #777;
+          }
+        }
 
         .right {
-          text-align: left;
-          margin-top: 0.25rem;
+          text-align: right;
+
+          .amount {
+            font-weight: 600;
+            color: #222260;
+          }
+
+          .date {
+            font-size: 0.8rem;
+            color: #888;
+          }
         }
       }
+    }
+
+    .no-transactions {
+      text-align: center;
+      color: #777;
+      font-style: italic;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
   }
 `;
-
 
 export default Dashboard;
