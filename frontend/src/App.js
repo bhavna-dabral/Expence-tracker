@@ -1,76 +1,48 @@
-import React, {useState, useMemo} from 'react'
-import styled from "styled-components";
-import bg from './img/bg.png'
-import {MainLayout} from './styles/Layouts'
-import Orb from './Components/Orb/Orb'
-import Navigation from './Components/Navigation/Navigation'
-import Dashboard from './Components/Dashboard/Dashboard';
-import Income from './Components/Income/Income'
-import Expenses from './Components/Expenses/Expenses';
-import { useGlobalContext } from './context/globalContext';
+// src/App.js
+import React, { useContext } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, AuthContext } from "./context/AuthContext";
+
+// ✅ Page Components
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import ResetPassword from "./pages/ResetPassword";
+
+// ✅ Dashboard Layout (includes Navigation + internal pages)
+import DashboardLayout from "./Layouts/DashboardLayout";
+
+// ✅ PrivateRoute wrapper
+const PrivateRoute = ({ children }) => {
+  const { token } = useContext(AuthContext);
+  return token ? children : <Navigate to="/login" replace />;
+};
 
 function App() {
-  const [active, setActive] = useState(1)
-
-  const global = useGlobalContext()
-  console.log(global);
-
-  const displayData = () => {
-    switch(active){
-      case 1:
-        return <Dashboard />
-      case 2:
-        return <Dashboard />
-      case 3:
-        return <Income />
-      case 4: 
-        return <Expenses />
-      default: 
-        return <Dashboard />
-    }
-  }
-
-  const orbMemo = useMemo(() => {
-    return <Orb />
-  },[])
-
   return (
-    <AppStyled bg={bg} className="App">
-      {orbMemo}
-      <MainLayout>
-        <Navigation active={active} setActive={setActive} />
-        <main>
-          {displayData()}
-        </main>
-      </MainLayout>
-    </AppStyled>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* Protected route — only for authenticated users */}
+          <Route
+            path="/*"
+            element={
+              <PrivateRoute>
+                <DashboardLayout />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Catch-all redirect for undefined routes */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-const AppStyled = styled.div`
-  min-height: 100vh;
-  background-image: url(${props => props.bg});
-  position: relative;
-  main{
-    flex: 1;
-    background: rgba(252, 246, 249, 0.78);
-    border: 3px solid #FFFFFF;
-    backdrop-filter: blur(4.5px);
-    border-radius: 32px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    &::-webkit-scrollbar{
-      width: 0;
-    }
-  }
-
-  @media (max-width: 900px){
-    padding: 1rem 0;
-    background-position: center top;
-    background-size: cover;
-    main{ border-radius: 16px }
-  }
-`;
 
 export default App;

@@ -1,38 +1,74 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import styled from "styled-components";
 import avatar from "../../img/avatar.png";
 import { signout } from "../../utils/Icons";
 import { menuItems } from "../../utils/menuItems";
 import { Menu, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../context/AuthContext";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 function Navigation({ active, setActive }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(avatar);
+  const [userAvatar, setUserAvatar] = useState(avatar); // temporary avatar
+  const [userName, setUserName] = useState("User");
+  const { token, logout } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  // Toggle hamburger menu
+  // ✅ Toggle mobile menu
   const handleToggleMenu = () => setMenuOpen(!menuOpen);
 
-  // Upload avatar
+  // ✅ Handle avatar upload (temporary)
   const handleAvatarUpload = (e) => {
     const file = e.target.files[0];
-    if (file) setUserAvatar(URL.createObjectURL(file));
-  };
+    if (file) {
+      const tempUrl = URL.createObjectURL(file);
+      setUserAvatar(tempUrl);
 
-  // Logout
-  const handleLogout = async () => {
-    try {
-      await axios.post("/api/auth/logout");
-      localStorage.removeItem("token");
-      window.location.href = "/login";
-    } catch (error) {
-      console.error("Logout failed:", error);
+      // Release memory on unmount
+      setTimeout(() => URL.revokeObjectURL(tempUrl), 10000);
     }
   };
 
+  // ✅ Fetch user profile (persistent name)
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!token) return;
+      try {
+        const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
+
+        const { data } = await axios.post(
+          `${backendUrl}/api/user/profile`,
+          {},
+          { headers: { token } }
+        );
+
+        if (data.success && data.user?.name) {
+          setUserName(data.user.name);
+        } else {
+          toast.error(data.message || "Unable to load profile");
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [token]);
+
+  // ✅ Logout function
+  const handleLogout = () => {
+    logout(); // clears token from AuthContext
+    toast.info("Logged out successfully");
+    navigate("/login");
+  };
+
+  if (!token) return null; // Hide sidebar when not logged in
+
   return (
     <NavStyled>
-      {/* User Section */}
+      {/* === User Section === */}
       <div className="user-con">
         <div className="avatar-con">
           <label htmlFor="avatar-upload">
@@ -43,23 +79,20 @@ function Navigation({ active, setActive }) {
             id="avatar-upload"
             accept="image/*"
             onChange={handleAvatarUpload}
-            aria-label="Upload Avatar"
           />
         </div>
+
         <div className="text">
-          <h2>Bhavna</h2>
+          <h2>{userName}</h2>
           <p>Your Money</p>
         </div>
-        <div
-          className="menu-toggle"
-          onClick={handleToggleMenu}
-          aria-label="Toggle Menu"
-        >
+
+        <div className="menu-toggle" onClick={handleToggleMenu}>
           {menuOpen ? <X size={26} /> : <Menu size={26} />}
         </div>
       </div>
 
-      {/* Menu Items */}
+      {/* === Menu Items === */}
       <ul className={`menu-items ${menuOpen ? "show" : ""}`}>
         {menuItems.map((item) => (
           <li
@@ -67,6 +100,7 @@ function Navigation({ active, setActive }) {
             className={active === item.id ? "active" : ""}
             onClick={() => {
               setActive(item.id);
+              navigate(item.link);
               setMenuOpen(false);
             }}
           >
@@ -76,11 +110,12 @@ function Navigation({ active, setActive }) {
         ))}
       </ul>
 
-      {/* Bottom Section */}
+      {/* === Bottom Logout === */}
       <div className="bottom-nav">
         <ul>
           <li onClick={handleLogout}>
-            {signout} <span>Sign Out</span>
+            {signout}
+            <span>Sign Out</span>
           </li>
         </ul>
       </div>
@@ -88,10 +123,9 @@ function Navigation({ active, setActive }) {
   );
 }
 
-export default Navigation;
-
+/* === Styled Component === */
 const NavStyled = styled.nav`
-  width: 374px;
+  width: 260px;
   height: 100vh;
   padding: 2rem 1.5rem;
   background: rgba(252, 246, 249, 0.78);
@@ -102,176 +136,113 @@ const NavStyled = styled.nav`
   flex-direction: column;
   justify-content: space-between;
   gap: 2rem;
-  position: relative;
   transition: all 0.3s ease-in-out;
-  z-index: 10;
 
-  /* USER SECTION */
+  /* Responsive for mobile */
+  @media (max-width: 768px) {
+    width: 100%;
+    height: auto;
+    border-radius: 0;
+    padding: 1rem;
+  }
+
   .user-con {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    justify-content: space-between;
     position: relative;
+  }
 
-    .avatar-con {
-      position: relative;
-      img {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        object-fit: cover;
-        background: #fcf6f9;
-        border: 2px solid #ffffff;
-        padding: 0.2rem;
-        box-shadow: 0px 1px 17px rgba(0, 0, 0, 0.06);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        &:hover {
-          opacity: 0.85;
-        }
-      }
-      input {
-        display: none;
-      }
-    }
+  .avatar-con img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid rgba(34, 34, 96, 0.2);
+  }
 
-    .text {
-      h2 {
-        color: rgba(34, 34, 96, 1);
-        font-size: 1rem;
-      }
-      p {
-        color: rgba(34, 34, 96, 0.6);
-        font-size: 0.9rem;
-      }
-    }
+  input[type="file"] {
+    display: none;
+  }
 
+  .text h2 {
+    font-size: 1.3rem;
+    color: #222260;
+    margin-top: 0.4rem;
+  }
+
+  .menu-toggle {
+    display: none;
+    cursor: pointer;
+  }
+
+  @media (max-width: 768px) {
     .menu-toggle {
-      display: none;
-      margin-left: auto;
+      display: block;
+      color: #222260;
+    }
+  }
+
+  .menu-items {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      margin: 1rem 0;
       cursor: pointer;
       color: rgba(34, 34, 96, 0.7);
-      transition: color 0.3s ease;
+      font-weight: 500;
+      transition: color 0.3s;
+
+      &.active,
       &:hover {
         color: rgba(34, 34, 96, 1);
       }
     }
   }
 
-  /* MENU ITEMS */
-  .menu-items {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    max-height: 100%;
-    overflow-y: auto;
-    transition: max-height 0.3s ease;
-
-    li {
-      display: grid;
-      grid-template-columns: 40px auto;
-      align-items: center;
-      margin: 0.6rem 0;
-      font-weight: 200;
-      cursor: pointer;
-      padding-left: 1rem;
-      position: relative;
-      color: rgba(34, 34, 96, 0.6);
-      transition: all 0.4s ease-in-out;
-
-      i {
-        color: rgba(34, 34, 96, 0.6);
-        font-size: 1.4rem;
-        transition: all 0.4s ease-in-out;
-      }
-    }
-
-    &.show {
-      max-height: 500px; /* smooth expand */
-    }
-  }
-
-  /* BOTTOM NAV */
-  .bottom-nav {
-    ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      li {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
-        color: rgba(34, 34, 96, 0.7);
-        transition: color 0.3s;
-        &:hover {
-          color: rgba(34, 34, 96, 1);
-        }
-      }
-    }
-  }
-
-  /* ACTIVE MENU ITEM */
-  .active {
-    color: rgba(34, 34, 96, 1) !important;
-    i {
-      color: rgba(34, 34, 96, 1) !important;
-    }
-    &::before {
-      content: "";
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 4px;
-      height: 100%;
-      background: #222260;
-      border-radius: 0 10px 10px 0;
-    }
-  }
-
-  /* MOBILE STYLES */
-  @media (max-width: 900px) {
-    width: 100%;
-    height: auto;
-    border-radius: 20px;
-    padding: 1rem;
-    flex-direction: column;
-
-    .user-con {
-      img {
-        width: 56px;
-        height: 56px;
-      }
-      .menu-toggle {
-        display: block;
-      }
-    }
-
+  @media (max-width: 768px) {
     .menu-items {
-      max-height: 0;
-      overflow: hidden;
-      background: rgba(252, 246, 249, 0.95);
-      border-radius: 20px;
+      display: none;
+      flex-direction: column;
+      background: #fff;
+      border-radius: 12px;
       padding: 1rem;
-      margin-top: 1rem;
-      box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.1);
-
-      li {
-        margin: 0.5rem 0;
-        padding-left: 0.5rem;
-      }
+      position: absolute;
+      top: 90px;
+      left: 0;
+      right: 0;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 
       &.show {
-        max-height: 500px; /* expand smoothly */
+        display: flex;
       }
     }
+  }
 
-    .bottom-nav ul {
+  .bottom-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
       display: flex;
-      justify-content: center;
-      li {
-        font-size: 0.8rem;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      color: rgba(34, 34, 96, 0.7);
+      font-weight: 500;
+      transition: color 0.3s;
+
+      &:hover {
+        color: rgba(34, 34, 96, 1);
       }
     }
   }
 `;
+
+export default Navigation;
