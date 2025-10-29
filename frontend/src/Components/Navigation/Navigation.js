@@ -33,7 +33,7 @@ function Navigation({ active, setActive }) {
 
         if (data.success && data.user) {
           setUserName(data.user.name || "User");
-          if (data.user.avatar) {
+          if (data.user.avatar1) {
             const avatarPath = data.user.avatar1.startsWith("http")
               ? data.user.avatar1
               : `${backendUrl}${data.user.avatar1}`;
