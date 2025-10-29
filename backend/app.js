@@ -13,6 +13,7 @@ import authUser from "./middleware/authUser.js";
 
 dotenv.config();
 
+// Resolve ES module paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -23,33 +24,32 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ CORS configuration (Handles local + Render)
+// ✅ CORS configuration (Fixed for Render)
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://expence-tracker-1-idgb.onrender.com", // your deployed frontend
+  "http://localhost:3000", // local React dev
+  "https://expence-tracker-1-idgb.onrender.com", // deployed frontend
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.warn("❌ Blocked by CORS:", origin);
+        console.log("❌ Blocked by CORS:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
 
-// ✅ Handle preflight requests
+// ✅ Handle preflight OPTIONS requests
 app.options("*", cors());
 
-// ✅ Serve uploaded avatars & static files
+// ✅ Serve uploaded files (like avatars)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ===================== File Upload Setup =====================
@@ -66,12 +66,14 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ===================== Routes =====================
+
+// 👤 User routes
 app.use("/api/user", userRouter);
 
-// 🧩 Avatar upload (protected)
+// 📸 Avatar upload (protected)
 app.post("/api/user/upload-avatar", authUser, upload.single("avatar"), uploadAvatar);
 
-// 🧩 Dynamically import other route files (if any)
+// 🧩 Dynamically load all other route files (if any)
 const routesDir = path.join(__dirname, "routes");
 for (const file of readdirSync(routesDir)) {
   if (!file.endsWith(".js") || file === "userRoutes.js") continue;
@@ -80,48 +82,23 @@ for (const file of readdirSync(routesDir)) {
   app.use("/api/v1", router);
 }
 
+// ✅ Test endpoint
+app.get("/", (req, res) => {
+  res.send("🚀 Expense Tracker API is running successfully!");
+});
+
 // ===================== Server Setup =====================
-const tryListen = (port) =>
-  new Promise((resolve, reject) => {
-    const server = app.listen(port);
-    const onError = (err) => {
-      server.removeListener("listening", onListening);
-      reject(err);
-    };
-    const onListening = () => {
-      server.removeListener("error", onError);
-      resolve(server);
-    };
-    server.once("error", onError);
-    server.once("listening", onListening);
-  });
-
 const startServer = async () => {
-  await db();
-
-  let port = Number(PORT);
-  const maxAttempts = 5;
-
-  for (let i = 0; i < maxAttempts; i++) {
-    try {
-      const server = await tryListen(port);
-      console.log(`✅ Server running on port ${port}`);
-      return server;
-    } catch (err) {
-      if (err.code === "EADDRINUSE") {
-        console.warn(`⚠️ Port ${port} in use, trying ${port + 1}...`);
-        port++;
-        continue;
-      }
-      console.error("❌ Failed to start server", err);
-      process.exit(1);
-    }
+  try {
+    await db(); // Connect to MongoDB
+    app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
+  } catch (err) {
+    console.error("❌ Failed to start server:", err);
+    process.exit(1);
   }
-  console.error("❌ Unable to bind to a port after multiple attempts");
-  process.exit(1);
 };
 
-// Only start server outside of test mode
+// Only start the server outside of test mode
 if (process.env.NODE_ENV !== "test") {
   startServer();
 }

@@ -6,7 +6,7 @@ import {
   getUserProfile,
   sendResetOtp,
   resetPassword,
-  uploadAvatar, // ✅ Add avatar upload controller (we’ll make it next)
+  uploadAvatar, // ✅ Add this if you support avatar upload
 } from "../controllers/userController.js";
 import authUser from "../middleware/authUser.js";
 
@@ -18,10 +18,10 @@ userRouter.post("/login", loginUser);
 userRouter.post("/logout", logoutUser);
 
 // 👤 Profile route (protected)
-userRouter.post("/profile", authUser, getUserProfile);
+userRouter.get("/profile", authUser, getUserProfile); // ✅ GET is more standard for profile fetch
 
-// 📸 Avatar upload route (protected)
-userRouter.post("/upload-avatar", authUser, uploadAvatar); // ✅ new route
+// 📸 Avatar upload (optional, protected)
+userRouter.post("/upload-avatar", authUser, uploadAvatar); // ✅ Only if implemented
 
 // 🔐 Password reset routes
 userRouter.post("/send-reset-otp", sendResetOtp);
