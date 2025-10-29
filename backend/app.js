@@ -24,7 +24,7 @@ app.use(express.json());
 
 // ✅ CORS configuration (for frontend cookies + auth)
 // ✅ CORS (allow credentials)
-import cors from "cors";
+
 
 app.use(
   cors({
