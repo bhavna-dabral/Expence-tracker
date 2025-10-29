@@ -21,33 +21,35 @@ const PORT = process.env.PORT || 5000;
 
 // ===================== Middleware =====================
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ CORS configuration
+// ✅ CORS configuration (Handles local + Render)
 const allowedOrigins = [
-  "http://localhost:3000", // local frontend
-  "https://expence-tracker-1-idgb.onrender.com", // deployed frontend
+  "http://localhost:3000",
+  "https://expence-tracker-1-idgb.onrender.com", // your deployed frontend
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        console.log("❌ Blocked by CORS:", origin);
+        console.warn("❌ Blocked by CORS:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true, // allow cookies / tokens
+    credentials: true,
   })
 );
 
-// ✅ Allow preflight OPTIONS requests
+// ✅ Handle preflight requests
 app.options("*", cors());
 
-// ✅ Serve uploaded avatars as static files
+// ✅ Serve uploaded avatars & static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ===================== File Upload Setup =====================
@@ -57,7 +59,7 @@ const storage = multer.diskStorage({
     cb(null, uploadPath);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
     cb(null, `${uniqueSuffix}-${file.originalname}`);
   },
 });
@@ -66,10 +68,10 @@ const upload = multer({ storage });
 // ===================== Routes =====================
 app.use("/api/user", userRouter);
 
-// 🧩 Avatar upload route
+// 🧩 Avatar upload (protected)
 app.post("/api/user/upload-avatar", authUser, upload.single("avatar"), uploadAvatar);
 
-// 🧩 Dynamically load other routes (if any)
+// 🧩 Dynamically import other route files (if any)
 const routesDir = path.join(__dirname, "routes");
 for (const file of readdirSync(routesDir)) {
   if (!file.endsWith(".js") || file === "userRoutes.js") continue;
@@ -119,6 +121,7 @@ const startServer = async () => {
   process.exit(1);
 };
 
+// Only start server outside of test mode
 if (process.env.NODE_ENV !== "test") {
   startServer();
 }
