@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import styled from "styled-components";
-import avatar from "../../img/avatar.png";
+import avatarPlaceholder from "../../img/avatar.png";
 import { signout } from "../../utils/Icons";
 import { menuItems } from "../../utils/menuItems";
 import { Menu, X } from "lucide-react";
@@ -11,55 +11,85 @@ import { toast } from "react-toastify";
 
 function Navigation({ active, setActive }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState(avatar); // temporary avatar
+  const [userAvatar, setUserAvatar] = useState(avatarPlaceholder);
   const [userName, setUserName] = useState("User");
   const { token, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
   // ✅ Toggle mobile menu
   const handleToggleMenu = () => setMenuOpen(!menuOpen);
 
-  // ✅ Handle avatar upload (temporary)
-  const handleAvatarUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const tempUrl = URL.createObjectURL(file);
-      setUserAvatar(tempUrl);
-
-      // Release memory on unmount
-      setTimeout(() => URL.revokeObjectURL(tempUrl), 10000);
-    }
-  };
-
-  // ✅ Fetch user profile (persistent name)
+  // ✅ Fetch user profile (persistent name + avatar)
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!token) return;
       try {
-        const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
-
         const { data } = await axios.post(
           `${backendUrl}/api/user/profile`,
           {},
           { headers: { token } }
         );
 
-        if (data.success && data.user?.name) {
-          setUserName(data.user.name);
+        if (data.success && data.user) {
+          setUserName(data.user.name || "User");
+          if (data.user.avatar) {
+            const avatarPath = data.user.avatar.startsWith("http")
+              ? data.user.avatar
+              : `${backendUrl}${data.user.avatar}`;
+            setUserAvatar(avatarPath);
+          } else {
+            setUserAvatar(avatarPlaceholder);
+          }
         } else {
           toast.error(data.message || "Unable to load profile");
         }
       } catch (error) {
         console.error("Error fetching profile:", error);
+        toast.error("Failed to load profile");
       }
     };
-
     fetchUserProfile();
-  }, [token]);
+  }, [token, backendUrl]);
+
+  // ✅ Handle avatar upload (permanent)
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const { data } = await axios.post(
+        `${backendUrl}/api/user/upload-avatar`,
+        formData,
+        {
+          headers: {
+            token,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (data.success && data.avatar) {
+        const avatarPath = data.avatar.startsWith("http")
+          ? data.avatar
+          : `${backendUrl}${data.avatar}`;
+        setUserAvatar(avatarPath);
+        toast.success("Avatar updated successfully");
+      } else {
+        toast.error(data.message || "Failed to upload avatar");
+      }
+    } catch (error) {
+      console.error("Avatar upload error:", error);
+      toast.error("Error uploading avatar");
+    }
+  };
 
   // ✅ Logout function
   const handleLogout = () => {
-    logout(); // clears token from AuthContext
+    logout();
     toast.info("Logged out successfully");
     navigate("/login");
   };
@@ -67,7 +97,7 @@ function Navigation({ active, setActive }) {
   if (!token) return null; // Hide sidebar when not logged in
 
   return (
-    <NavStyled>
+    <NavStyled menuOpen={menuOpen}>
       {/* === User Section === */}
       <div className="user-con">
         <div className="avatar-con">
@@ -123,27 +153,27 @@ function Navigation({ active, setActive }) {
   );
 }
 
-/* === Styled Component === */
 const NavStyled = styled.nav`
   width: 260px;
   height: 100vh;
   padding: 2rem 1.5rem;
-  background: rgba(252, 246, 249, 0.78);
+  background: rgba(252, 246, 249, 0.9);
   border: 3px solid #ffffff;
   backdrop-filter: blur(4.5px);
   border-radius: 32px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 2rem;
   transition: all 0.3s ease-in-out;
+  position: relative;
+  z-index: 10;
 
-  /* Responsive for mobile */
   @media (max-width: 768px) {
     width: 100%;
     height: auto;
     border-radius: 0;
     padding: 1rem;
+    position: relative;
   }
 
   .user-con {
@@ -151,6 +181,18 @@ const NavStyled = styled.nav`
     align-items: center;
     justify-content: space-between;
     position: relative;
+
+    @media (max-width: 768px) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  .avatar-con {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .avatar-con img {
@@ -186,7 +228,7 @@ const NavStyled = styled.nav`
   .menu-items {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 1.5rem 0 0;
 
     li {
       display: flex;
@@ -216,6 +258,7 @@ const NavStyled = styled.nav`
       top: 90px;
       left: 0;
       right: 0;
+      z-index: 20;
       box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 
       &.show {

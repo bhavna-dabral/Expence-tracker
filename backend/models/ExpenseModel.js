@@ -1,39 +1,45 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
-
-const ExpenseSchema = new mongoose.Schema({
+const ExpenseSchema = new mongoose.Schema(
+  {
     title: {
-        type: String,
-        required: true,
-        trim: true,
-        maxLength: 50
+      type: String,
+      required: true,
+      trim: true,
+      maxLength: 50,
     },
     amount: {
-        type: Number,
-        required: true,
-        maxLength: 20,
-        trim: true
+      type: Number,
+      required: true,
+      max: 1000000000, // optional reasonable limit
     },
     type: {
-        type: String,
-        default:"expense"
+      type: String,
+      default: "expense",
     },
     date: {
-        type: Date,
-        required: true,
-        trim: true
+      type: Date,
+      required: true,
     },
     category: {
-        type: String,
-        required: true,
-        trim: true
+      type: String,
+      required: true,
+      trim: true,
     },
     description: {
-        type: String,
-        required: true,
-        maxLength: 20,
-        trim: true
+      type: String,
+      required: true,
+      maxLength: 200,
+      trim: true,
     },
-}, {timestamps: true})
+    // 👇 Add this field to link expense to a specific user
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model('Expense', ExpenseSchema)
+export default mongoose.model("Expense", ExpenseSchema);

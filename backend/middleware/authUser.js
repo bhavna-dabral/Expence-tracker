@@ -1,34 +1,34 @@
 import jwt from "jsonwebtoken";
 
-const authUser = (req, res, next) => {
+const authUser = async (req, res, next) => {
   try {
-    // Accept both "Authorization: Bearer <token>" and "token" headers
-    const authHeader = req.headers.authorization || req.headers.token;
+    // 🧩 Get token from cookie or Authorization header
+    const token =
+      req.cookies?.token ||
+      req.header("Authorization")?.replace("Bearer ", "");
 
-    if (!authHeader) {
-      return res.status(401).json({
-        success: false,
-        message: "Not authorized. Please log in again.",
-      });
+    if (!token) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Access denied. No token provided." });
     }
 
-    const token = authHeader.startsWith("Bearer ")
-      ? authHeader.split(" ")[1]
-      : authHeader;
-
+    // ✅ Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // attach user info for downstream access
-    req.user = decoded; 
-    req.userId = decoded.id;
+    // 🧠 Attach user data to request (most importantly user ID)
+    req.user = {
+      id: decoded.id || decoded._id, // handle both formats
+      email: decoded.email,
+      name: decoded.name,
+    };
 
     next();
   } catch (error) {
-    console.error("Auth Middleware Error:", error.message);
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or expired token.",
-    });
+    console.error("Auth error:", error.message);
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid or expired token." });
   }
 };
 

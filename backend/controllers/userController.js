@@ -1,5 +1,3 @@
-// controllers/userController.js
-
 import userModel from "../models/userModel.js";
 import validator from "validator";
 import bcrypt from "bcrypt";
@@ -9,7 +7,7 @@ import transporter from "../config/nodemailer.js";
 const COOKIE_NAME = "token";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-// Cookie options
+// ===================== COOKIE OPTIONS =====================
 const getCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
@@ -17,137 +15,108 @@ const getCookieOptions = () => ({
   maxAge: COOKIE_MAX_AGE,
 });
 
-// Generate JWT token
+// ===================== CREATE TOKEN =====================
 const createToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-};
-
-
-// ===================== LOGIN =====================
-const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.json({ success: false, message: "Missing details" });
-  }
-
-  try {
-    const user = await userModel.findOne({ email });
-    if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Email doesn't exist" });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Invalid credentials" });
-    }
-
-    const token = createToken({ id: user._id });
-    res.cookie(COOKIE_NAME, token, getCookieOptions());
-
-    return res
-      .status(200)
-      .json({ success: true, token, message: "Logged in successfully" });
-  } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: error.message });
-  }
 };
 
 // ===================== REGISTER =====================
 const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password) {
-    return res.json({ success: false, message: "Missing Details" });
-  }
+  if (!name || !email || !password)
+    return res.json({ success: false, message: "Missing details" });
 
   try {
-    if (!validator.isEmail(email)) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Please enter a valid email" });
-    }
+    if (!validator.isEmail(email))
+      return res.json({ success: false, message: "Invalid email" });
 
-    if (password.length < 8) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Password must be at least 8 characters",
-        });
-    }
+    if (password.length < 8)
+      return res.json({
+        success: false,
+        message: "Password must be at least 8 characters",
+      });
 
     const exists = await userModel.findOne({ email });
-    if (exists) {
-      return res
-        .status(409)
-        .json({ success: false, message: "User already exists" });
-    }
+    if (exists)
+      return res.json({ success: false, message: "User already exists" });
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new userModel({
+    const user = await userModel.create({
       name,
       email,
       password: hashedPassword,
     });
 
-    const user = await newUser.save();
-
-    const token = createToken({ id: user._id });
+    const token = createToken(user);
     res.cookie(COOKIE_NAME, token, getCookieOptions());
 
     // Send welcome email
-    const mailOptions = {
+    await transporter.sendMail({
       from: process.env.SENDER_EMAIL,
       to: email,
       subject: "Welcome to Forever",
       html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2 style="color: #4CAF50;">Welcome to Forever!</h2>
-          <p>Hello <strong>${name}</strong>,</p>
-          <p>Your account has been successfully created with 
-          <strong>Email ID:</strong> ${email}</p>
-          <p>We're excited to have you on board. If you have any questions, feel free to reach out.</p>
-          <p>Happy Shopping!</p>
-          <br>
-          <p>Best regards,<br>The Forever Team</p>
+        <div style="font-family: Arial, sans-serif;">
+          <h2 style="color: #4CAF50;">Welcome, ${name}!</h2>
+          <p>Your account has been created successfully.</p>
+          <p><b>Email:</b> ${email}</p>
+          <p>Enjoy tracking your income and expenses with Forever!</p>
         </div>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    return res
-      .status(201)
-      .json({ success: true, token, message: "User registered successfully" });
+    res.status(201).json({
+      success: true,
+      token,
+      message: "User registered successfully",
+    });
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ===================== LOGIN =====================
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password)
+    return res.json({ success: false, message: "Missing details" });
+
+  try {
+    const user = await userModel.findOne({ email });
+    if (!user)
+      return res.status(401).json({ success: false, message: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ success: false, message: "Invalid password" });
+
+    const token = createToken(user);
+    res.cookie(COOKIE_NAME, token, getCookieOptions());
+
+    res.json({
+      success: true,
+      token,
+      message: "Login successful",
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // ===================== PROFILE =====================
 const getUserProfile = async (req, res) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user?.id || req.body.userId;
     const user = await userModel.findById(userId).select("-password");
-    if (user) {
-      res.json({ success: true, user });
-    } else {
-      res.json({ success: false, message: "User not found" });
-    }
+    if (!user)
+      return res.json({ success: false, message: "User not found" });
+
+    res.json({ success: true, user });
   } catch (error) {
-    console.log(error);
     res.json({ success: false, message: error.message });
   }
 };
@@ -156,14 +125,9 @@ const getUserProfile = async (req, res) => {
 const logoutUser = async (req, res) => {
   try {
     res.clearCookie(COOKIE_NAME, getCookieOptions());
-    return res
-      .status(200)
-      .json({ success: true, message: "Successfully logged out" });
+    res.json({ success: true, message: "Logged out successfully" });
   } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -171,48 +135,34 @@ const logoutUser = async (req, res) => {
 const sendResetOtp = async (req, res) => {
   const { email } = req.body;
 
-  if (!email) {
-    return res.json({ success: false, message: "Email Required" });
-  }
+  if (!email)
+    return res.json({ success: false, message: "Email required" });
 
   try {
     const user = await userModel.findOne({ email });
-    if (!user) {
-      return res.json({
-        success: false,
-        message: "No user with the given email exists",
-      });
-    }
+    if (!user)
+      return res.json({ success: false, message: "User not found" });
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
-
     user.resetOtp = otp;
-    user.resetOtpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    user.resetOtpExpireAt = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    const mailOptions = {
+    await transporter.sendMail({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Password Reset OTP",
       html: `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9f9f9;">
-          <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 6px; border: 1px solid #ddd;">
-            <h2 style="color: #4CAF50;">Reset Password</h2>
-            <p>Hi ${user.name},</p>
-            <p>Your OTP to reset your Forever password is below:</p>
-            <div style="font-size: 20px; font-weight: bold; color: #333; background-color: #e0f7fa; padding: 10px; border-radius: 4px; display: inline-block; margin: 15px 0;">
-              ${otp}
-            </div>
-            <p>This OTP is valid for <strong>10 minutes</strong>. If you didn't request this, please ignore this email.</p>
-            <p>Best regards,<br>The Forever Team</p>
-          </div>
+        <div style="font-family: Arial; line-height: 1.5;">
+          <h3>Your OTP Code</h3>
+          <p>Use the code below to reset your password:</p>
+          <h2>${otp}</h2>
+          <p>Expires in 10 minutes.</p>
         </div>
       `,
-    };
+    });
 
-    await transporter.sendMail(mailOptions);
-
-    res.json({ success: true, message: "Password reset OTP sent via email" });
+    res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -221,46 +171,69 @@ const sendResetOtp = async (req, res) => {
 // ===================== RESET PASSWORD =====================
 const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
-  if (!email || !otp || !newPassword) {
+
+  if (!email || !otp || !newPassword)
     return res.json({ success: false, message: "Missing details" });
-  }
 
   try {
     const user = await userModel.findOne({ email });
-    if (!user) {
-      return res.json({ success: false, message: "User not found" });
-    }
+    if (!user) return res.json({ success: false, message: "User not found" });
 
-    if (user.resetOtp === "" || user.resetOtp !== otp) {
+    if (user.resetOtp !== otp)
       return res.json({ success: false, message: "Invalid OTP" });
-    }
 
-    if (user.resetOtpExpiry < Date.now()) {
-      return res.json({ success: false, message: "OTP has expired" });
-    }
+    if (user.resetOtpExpireAt < Date.now())
+      return res.json({ success: false, message: "OTP expired" });
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
+    user.password = await bcrypt.hash(newPassword, 10);
     user.resetOtp = "";
-    user.resetOtpExpiry = 0;
-
+    user.resetOtpExpireAt = 0;
     await user.save();
 
-    return res.json({
-      success: true,
-      message: "Password reset successfully",
-    });
+    res.json({ success: true, message: "Password reset successfully" });
   } catch (error) {
-    return res.json({ success: false, message: error.message });
+    res.json({ success: false, message: error.message });
   }
 };
 
-// ✅ Correct exports (ESM style)
+// ===================== UPLOAD AVATAR =====================
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const userId = req.user.id;
+    const avatarPath = `/uploads/avatars/${req.file.filename}`;
+    const fullAvatarUrl = `${req.protocol}://${req.get("host")}${avatarPath}`;
+
+    const updatedUser = await userModel
+      .findByIdAndUpdate(userId, { avatar: avatarPath }, { new: true })
+      .select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.json({
+      success: true,
+      message: "Avatar uploaded successfully",
+      avatar: fullAvatarUrl,
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error uploading avatar:", error);
+    res.status(500).json({ success: false, message: "Failed to upload avatar" });
+  }
+};
+
+// ===================== EXPORTS =====================
 export {
-  loginUser,
   registerUser,
+  loginUser,
   logoutUser,
   getUserProfile,
+  uploadAvatar,
   sendResetOtp,
   resetPassword,
 };
