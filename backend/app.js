@@ -23,12 +23,20 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 
 // ✅ CORS configuration (for frontend cookies + auth)
+// ✅ CORS (allow credentials)
+import cors from "cors";
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: [
+      process.env.FRONTEND_URL,     // for Render
+      "http://localhost:3000",      // for local dev
+    ],
     credentials: true,
   })
 );
+
+
 
 // ✅ Serve uploaded avatars as static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
