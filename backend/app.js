@@ -6,10 +6,10 @@ import { readdirSync } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { db } from "./db/db.js";
-import userRouter from "./routes/userRoutes.js"; // ✅ User routes
+import userRouter from "./routes/userRoutes.js";
 import multer from "multer";
-import { uploadAvatar } from "./controllers/userController.js"; // ✅ must exist in controller
-import authUser from "./middleware/authUser.js"; // ✅ correct auth middleware
+import { uploadAvatar } from "./controllers/userController.js";
+import authUser from "./middleware/authUser.js";
 
 dotenv.config();
 
@@ -19,29 +19,38 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ========== Middleware ==========
+// ===================== Middleware =====================
 app.use(express.json());
 
-// ✅ CORS configuration (for frontend cookies + auth)
-// ✅ CORS (allow credentials)
-
+// ✅ CORS configuration
+const allowedOrigins = [
+  "http://localhost:3000", // local frontend
+  "https://expence-tracker-1-idgb.onrender.com", // deployed frontend
+];
 
 app.use(
   cors({
-    origin: [
-      process.env.FRONTEND_URL,     // for Render
-      "http://localhost:3000",      // for local dev
-    ],
-    credentials: true,
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ Blocked by CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true, // allow cookies / tokens
   })
 );
 
-
+// ✅ Allow preflight OPTIONS requests
+app.options("*", cors());
 
 // ✅ Serve uploaded avatars as static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ========== File Upload Setup (for Avatars) ==========
+// ===================== File Upload Setup =====================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadPath = path.join(__dirname, "uploads/avatars");
@@ -54,13 +63,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// ========== Routes ==========
+// ===================== Routes =====================
 app.use("/api/user", userRouter);
 
 // 🧩 Avatar upload route
 app.post("/api/user/upload-avatar", authUser, upload.single("avatar"), uploadAvatar);
 
-// Dynamically import all other route files in /routes
+// 🧩 Dynamically load other routes (if any)
 const routesDir = path.join(__dirname, "routes");
 for (const file of readdirSync(routesDir)) {
   if (!file.endsWith(".js") || file === "userRoutes.js") continue;
@@ -69,7 +78,7 @@ for (const file of readdirSync(routesDir)) {
   app.use("/api/v1", router);
 }
 
-// ========== Server Setup ==========
+// ===================== Server Setup =====================
 const tryListen = (port) =>
   new Promise((resolve, reject) => {
     const server = app.listen(port);
