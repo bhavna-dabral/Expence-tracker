@@ -1,6 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import styled from "styled-components";
-import avatarPlaceholder from "../../img/avatar.png";
+import avatarPlaceholder from "../../img/avatar1.jpg";
 import { signout } from "../../utils/Icons";
 import { menuItems } from "../../utils/menuItems";
 import { Menu, X } from "lucide-react";
@@ -34,9 +34,9 @@ function Navigation({ active, setActive }) {
         if (data.success && data.user) {
           setUserName(data.user.name || "User");
           if (data.user.avatar) {
-            const avatarPath = data.user.avatar.startsWith("http")
-              ? data.user.avatar
-              : `${backendUrl}${data.user.avatar}`;
+            const avatarPath = data.user.avatar1.startsWith("http")
+              ? data.user.avatar1
+              : `${backendUrl}${data.user.avatar1}`;
             setUserAvatar(avatarPath);
           } else {
             setUserAvatar(avatarPlaceholder);
@@ -59,7 +59,7 @@ function Navigation({ active, setActive }) {
 
     try {
       const formData = new FormData();
-      formData.append("avatar", file);
+      formData.append("avatar1", file);
 
       const { data } = await axios.post(
         `${backendUrl}/api/user/upload-avatar`,
@@ -72,7 +72,7 @@ function Navigation({ active, setActive }) {
         }
       );
 
-      if (data.success && data.avatar) {
+      if (data.success && data.avatar1) {
         const avatarPath = data.avatar.startsWith("http")
           ? data.avatar
           : `${backendUrl}${data.avatar}`;
