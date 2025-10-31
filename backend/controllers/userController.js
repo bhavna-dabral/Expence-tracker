@@ -42,17 +42,12 @@ const registerUser = async (req, res) => {
       return res.json({ success: false, message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await userModel.create({
-      name,
-      email,
-      password: hashedPassword,
-    });
+    const user = await userModel.create({ name, email, password: hashedPassword });
 
     const token = createToken(user);
     res.cookie(COOKIE_NAME, token, getCookieOptions());
 
-    // Send welcome email
+    // ✅ Send welcome email
     await transporter.sendMail({
       from: process.env.SENDER_EMAIL,
       to: email,
@@ -73,7 +68,7 @@ const registerUser = async (req, res) => {
       message: "User registered successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Register error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -97,12 +92,9 @@ const loginUser = async (req, res) => {
     const token = createToken(user);
     res.cookie(COOKIE_NAME, token, getCookieOptions());
 
-    res.json({
-      success: true,
-      token,
-      message: "Login successful",
-    });
+    res.json({ success: true, token, message: "Login successful" });
   } catch (error) {
+    console.error("❌ Login error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -117,6 +109,7 @@ const getUserProfile = async (req, res) => {
 
     res.json({ success: true, user });
   } catch (error) {
+    console.error("❌ Profile error:", error);
     res.json({ success: false, message: error.message });
   }
 };
@@ -127,6 +120,7 @@ const logoutUser = async (req, res) => {
     res.clearCookie(COOKIE_NAME, getCookieOptions());
     res.json({ success: true, message: "Logged out successfully" });
   } catch (error) {
+    console.error("❌ Logout error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -148,7 +142,10 @@ const sendResetOtp = async (req, res) => {
     user.resetOtpExpireAt = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    await transporter.sendMail({
+    console.log("📨 Sending email to:", user.email);
+    console.log("📧 Using SENDER_EMAIL:", process.env.SENDER_EMAIL);
+
+    const info = await transporter.sendMail({
       from: process.env.SENDER_EMAIL,
       to: user.email,
       subject: "Password Reset OTP",
@@ -162,8 +159,10 @@ const sendResetOtp = async (req, res) => {
       `,
     });
 
+    console.log("✅ Email sent:", info.response);
     res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
+    console.error("❌ Error sending OTP:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
@@ -192,7 +191,8 @@ const resetPassword = async (req, res) => {
 
     res.json({ success: true, message: "Password reset successfully" });
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("❌ Reset password error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -222,7 +222,7 @@ const uploadAvatar = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    console.error("Error uploading avatar:", error);
+    console.error("❌ Avatar upload error:", error);
     res.status(500).json({ success: false, message: "Failed to upload avatar" });
   }
 };

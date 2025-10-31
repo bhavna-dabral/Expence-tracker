@@ -3,16 +3,22 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Log for debugging (optional)
+console.log("SMTP_USER:", process.env.SMTP_USER);
+console.log("SMTP_PASS:", process.env.SMTP_PASS ? "Loaded" : "Missing");
+
+// ✅ Use Brevo SMTP configuration
 const transporter = nodemailer.createTransport({
-  host: "smtp.resend.com",
-  port: 587,
+  host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
+  port: process.env.SMTP_PORT || 587,
+  secure: false, // TLS will be upgraded automatically
   auth: {
-    user: "resend",
-    pass: process.env.RESEND_API_KEY,
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
   },
 });
 
-// Optional: verify connection
+// ✅ Verify connection on startup
 transporter.verify((error, success) => {
   if (error) {
     console.error("❌ SMTP connection failed:", error);

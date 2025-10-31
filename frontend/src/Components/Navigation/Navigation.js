@@ -17,27 +17,24 @@ function Navigation({ active, setActive }) {
   const navigate = useNavigate();
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
-
   // ✅ Toggle mobile menu
   const handleToggleMenu = () => setMenuOpen(!menuOpen);
 
-  // ✅ Fetch user profile (persistent name + avatar)
+  // ✅ Fetch user profile
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!token) return;
       try {
-        const { data } = await axios.post(
-          `${backendUrl}/api/user/profile`,
-          {},
-          { headers: { token } }
-        );
+        const { data } = await axios.get(`${backendUrl}/api/user/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
         if (data.success && data.user) {
           setUserName(data.user.name || "User");
-          if (data.user.avatar1) {
-            const avatarPath = data.user.avatar1.startsWith("http")
-              ? data.user.avatar1
-              : `${backendUrl}${data.user.avatar1}`;
+          if (data.user.avatar) {
+            const avatarPath = data.user.avatar.startsWith("http")
+              ? data.user.avatar
+              : `${backendUrl}${data.user.avatar}`;
             setUserAvatar(avatarPath);
           } else {
             setUserAvatar(avatarPlaceholder);
@@ -50,30 +47,31 @@ function Navigation({ active, setActive }) {
         toast.error("Failed to load profile");
       }
     };
+
     fetchUserProfile();
   }, [token, backendUrl]);
 
-  // ✅ Handle avatar upload (permanent)
+  // ✅ Handle avatar upload
   const handleAvatarUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     try {
       const formData = new FormData();
-      formData.append("avatar1", file);
+      formData.append("avatar", file); // ✅ corrected key
 
       const { data } = await axios.post(
         `${backendUrl}/api/user/upload-avatar`,
         formData,
         {
           headers: {
-            token,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
       );
 
-      if (data.success && data.avatar1) {
+      if (data.success && data.avatar) {
         const avatarPath = data.avatar.startsWith("http")
           ? data.avatar
           : `${backendUrl}${data.avatar}`;
@@ -88,14 +86,14 @@ function Navigation({ active, setActive }) {
     }
   };
 
-  // ✅ Logout function
+  // ✅ Logout
   const handleLogout = () => {
     logout();
     toast.info("Logged out successfully");
     navigate("/login");
   };
 
-  if (!token) return null; // Hide sidebar when not logged in
+  if (!token) return null;
 
   return (
     <NavStyled menuOpen={menuOpen}>
@@ -141,7 +139,7 @@ function Navigation({ active, setActive }) {
         ))}
       </ul>
 
-      {/* === Bottom Logout === */}
+      {/* === Logout === */}
       <div className="bottom-nav">
         <ul>
           <li onClick={handleLogout}>
@@ -153,6 +151,7 @@ function Navigation({ active, setActive }) {
     </NavStyled>
   );
 }
+
 
 const NavStyled = styled.nav`
   width: 260px;
