@@ -17,6 +17,7 @@ function Navigation({ active, setActive }) {
   const navigate = useNavigate();
   const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:5000";
 
+
   // ✅ Toggle mobile menu
   const handleToggleMenu = () => setMenuOpen(!menuOpen);
 
