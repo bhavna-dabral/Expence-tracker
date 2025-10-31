@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ CORS configuration (Fixed for Render)
 const allowedOrigins = [
   "http://localhost:3000", // local React dev
-  "https://expence-tracker-1-idgb.onrender.com", // deployed frontend
+  "https://expence-tracker-2-dl1h.onrender.com", // deployed frontend
 ];
 
 app.use(
