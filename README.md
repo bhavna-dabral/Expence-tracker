@@ -11,25 +11,9 @@
 A **MERN stack Expense Tracker** for managing personal finances.  
 Most core features are implemented; remaining tasks are **user authentication** and **deployment**.
 
----
+🚀 Live Project : https://expence-tracker-2-dl1h.onrender.com
 
-## ✅ Completed Features
-
-- Add / Delete Income  
-- Add / Delete Expense  
-- Dashboard displaying all transactions  
-- Charts visualizing income vs expenses  
-
----
-
-## 🔜 Remaining Features
-
-- User Signup  
-- User Signin  
-- User Signout  
-- Deployment to a hosting platform (Heroku, Vercel, etc.)
-
----
+--
 
 ## 🏗️ Project Structure
 <img width="1879" height="935" alt="Screenshot (171)" src="https://github.com/user-attachments/assets/3d8ee860-7f35-4d1f-935d-d9188ad874d2" />
