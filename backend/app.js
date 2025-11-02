@@ -25,29 +25,35 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ✅ CORS configuration (Fixed for Render)
+// ✅ CORS configuration (Fixed for Render + Vercel)
 const allowedOrigins = [
   "http://localhost:3000", // local React dev
-  "https://expence-tracker-q1mv.vercel.app", // deployed frontend
+  "https://expence-tracker-q1mv.vercel.app", // deployed frontend on Vercel
 ];
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        console.log("❌ Blocked by CORS:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+// ✅ Apply CORS middleware globally
+app.use(cors(corsOptions));
+
+// ✅ Handle preflight requests (use same options)
+app.options("*", cors(corsOptions));
+
 
 // ✅ Handle preflight OPTIONS requests
-app.options("*", cors());
+
 
 // ✅ Serve uploaded files (like avatars)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
