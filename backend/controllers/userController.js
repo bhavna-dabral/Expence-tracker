@@ -2,7 +2,7 @@ import userModel from "../models/userModel.js";
 import validator from "validator";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import transporter from "../config/nodemailer.js";
+import { sendEmail } from "../config/brevo.js"; // ✅ Brevo email utility
 
 const COOKIE_NAME = "token";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -21,7 +21,7 @@ const createToken = (user) => {
 };
 
 // ===================== REGISTER =====================
-const registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   const { name, email, password } = req.body;
 
   if (!name || !email || !password)
@@ -48,19 +48,22 @@ const registerUser = async (req, res) => {
     res.cookie(COOKIE_NAME, token, getCookieOptions());
 
     // ✅ Send welcome email
-    await transporter.sendMail({
-      from: process.env.SENDER_EMAIL,
-      to: email,
-      subject: "Welcome to Forever",
-      html: `
+    try {
+      await sendEmail(
+        email,
+        "Welcome to Forever 🎉",
+        `
         <div style="font-family: Arial, sans-serif;">
           <h2 style="color: #4CAF50;">Welcome, ${name}!</h2>
           <p>Your account has been created successfully.</p>
           <p><b>Email:</b> ${email}</p>
           <p>Enjoy tracking your income and expenses with Forever!</p>
         </div>
-      `,
-    });
+        `
+      );
+    } catch (mailError) {
+      console.error("⚠️ Failed to send welcome email:", mailError.message);
+    }
 
     res.status(201).json({
       success: true,
@@ -74,7 +77,7 @@ const registerUser = async (req, res) => {
 };
 
 // ===================== LOGIN =====================
-const loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password)
@@ -100,7 +103,7 @@ const loginUser = async (req, res) => {
 };
 
 // ===================== PROFILE =====================
-const getUserProfile = async (req, res) => {
+export const getUserProfile = async (req, res) => {
   try {
     const userId = req.user?.id || req.body.userId;
     const user = await userModel.findById(userId).select("-password");
@@ -115,7 +118,7 @@ const getUserProfile = async (req, res) => {
 };
 
 // ===================== LOGOUT =====================
-const logoutUser = async (req, res) => {
+export const logoutUser = async (req, res) => {
   try {
     res.clearCookie(COOKIE_NAME, getCookieOptions());
     res.json({ success: true, message: "Logged out successfully" });
@@ -126,7 +129,7 @@ const logoutUser = async (req, res) => {
 };
 
 // ===================== SEND RESET OTP =====================
-const sendResetOtp = async (req, res) => {
+export const sendResetOtp = async (req, res) => {
   const { email } = req.body;
 
   if (!email)
@@ -142,24 +145,27 @@ const sendResetOtp = async (req, res) => {
     user.resetOtpExpireAt = Date.now() + 10 * 60 * 1000; // 10 minutes
     await user.save();
 
-    console.log("📨 Sending email to:", user.email);
-    console.log("📧 Using SENDER_EMAIL:", process.env.SENDER_EMAIL);
+    console.log("📨 Sending OTP to:", user.email);
 
-    const info = await transporter.sendMail({
-      from: process.env.SENDER_EMAIL,
-      to: user.email,
-      subject: "Password Reset OTP",
-      html: `
+    try {
+      await sendEmail(
+        user.email,
+        "Password Reset OTP",
+        `
         <div style="font-family: Arial; line-height: 1.5;">
           <h3>Your OTP Code</h3>
           <p>Use the code below to reset your password:</p>
           <h2>${otp}</h2>
           <p>Expires in 10 minutes.</p>
         </div>
-      `,
-    });
+        `
+      );
+      console.log("✅ OTP email sent successfully to:", user.email);
+    } catch (mailError) {
+      console.error("⚠️ Failed to send OTP email:", mailError.message);
+      return res.json({ success: false, message: "Failed to send OTP email" });
+    }
 
-    console.log("✅ Email sent:", info.response);
     res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
     console.error("❌ Error sending OTP:", error);
@@ -168,7 +174,7 @@ const sendResetOtp = async (req, res) => {
 };
 
 // ===================== RESET PASSWORD =====================
-const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
   const { email, otp, newPassword } = req.body;
 
   if (!email || !otp || !newPassword)
@@ -197,7 +203,7 @@ const resetPassword = async (req, res) => {
 };
 
 // ===================== UPLOAD AVATAR =====================
-const uploadAvatar = async (req, res) => {
+export const uploadAvatar = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
@@ -225,15 +231,4 @@ const uploadAvatar = async (req, res) => {
     console.error("❌ Avatar upload error:", error);
     res.status(500).json({ success: false, message: "Failed to upload avatar" });
   }
-};
-
-// ===================== EXPORTS =====================
-export {
-  registerUser,
-  loginUser,
-  logoutUser,
-  getUserProfile,
-  uploadAvatar,
-  sendResetOtp,
-  resetPassword,
 };
