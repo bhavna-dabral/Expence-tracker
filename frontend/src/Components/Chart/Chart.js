@@ -8,9 +8,8 @@ import {
   Title,
   Tooltip,
   Legend,
-  ArcElement,
+  Filler,
 } from 'chart.js';
-
 import { Line } from 'react-chartjs-2';
 import styled from 'styled-components';
 import { useGlobalContext } from '../../context/globalContext';
@@ -24,32 +23,67 @@ ChartJs.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  Filler
 );
 
-function Chart() {
+function IncomeExpenseChart() {
   const { incomes, expenses } = useGlobalContext();
 
+  // ✅ Sort by date for proper trend display
+  const sortedIncomes = [...incomes].sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
+  const sortedExpenses = [...expenses].sort(
+    (a, b) => new Date(a.date) - new Date(b.date)
+  );
+
+  // ✅ Create a combined set of labels
+  const labels = Array.from(
+    new Set([
+      ...sortedIncomes.map((inc) => dateFormat(inc.date)),
+      ...sortedExpenses.map((exp) => dateFormat(exp.date)),
+    ])
+  ).sort((a, b) => new Date(a) - new Date(b));
+
   const data = {
-    labels: incomes.map((inc) => {
-      const { date } = inc;
-      return dateFormat(date);
-    }),
+    labels,
     datasets: [
       {
         label: 'Income',
-        data: incomes.map((income) => income.amount),
+        data: labels.map((label) => {
+          const income = sortedIncomes.find(
+            (i) => dateFormat(i.date) === label
+          );
+          return income ? income.amount : 0;
+        }),
         borderColor: '#42AD00',
-        backgroundColor: 'rgba(66, 173, 0, 0.3)',
-        tension: 0.3,
+        backgroundColor: 'rgba(66, 173, 0, 0.2)',
+        borderWidth: 3,
+        pointBackgroundColor: '#42AD00',
+        pointBorderColor: '#fff',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointHoverBorderWidth: 2,
+        tension: 0.4,
         fill: true,
       },
       {
         label: 'Expenses',
-        data: expenses.map((expense) => expense.amount),
+        data: labels.map((label) => {
+          const expense = sortedExpenses.find(
+            (e) => dateFormat(e.date) === label
+          );
+          return expense ? expense.amount : 0;
+        }),
         borderColor: '#F56692',
-        backgroundColor: 'rgba(245, 102, 146, 0.3)',
-        tension: 0.3,
+        backgroundColor: 'rgba(245, 102, 146, 0.2)',
+        borderWidth: 3,
+        pointBackgroundColor: '#F56692',
+        pointBorderColor: '#fff',
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointHoverBorderWidth: 2,
+        tension: 0.4,
         fill: true,
       },
     ],
@@ -57,12 +91,17 @@ function Chart() {
 
   const options = {
     responsive: true,
-    maintainAspectRatio: false, // 🔑 Allows height to adapt to container
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'nearest',
+      intersect: false,
+    },
     plugins: {
       legend: {
+        display: true,
         position: 'top',
         labels: {
-          color: 'rgba(34, 34, 96, 0.7)',
+          color: '#222260',
           font: {
             size: 12,
             family: 'Nunito, sans-serif',
@@ -71,33 +110,47 @@ function Chart() {
       },
       title: {
         display: true,
-        text: 'Income vs Expenses Overview',
+        text: 'Income vs Expense Trend',
         color: '#222260',
         font: {
           size: 16,
           weight: 'bold',
-          family: 'Nunito, sans-serif',
         },
+      },
+      tooltip: {
+        usePointStyle: true,
+        callbacks: {
+          label: (tooltipItem) => {
+            const date = tooltipItem.label;
+            const value = tooltipItem.raw;
+            return `${tooltipItem.dataset.label}: ₹${value} on ${date}`;
+          },
+        },
+        backgroundColor: '#fff',
+        titleColor: '#222260',
+        bodyColor: '#222260',
+        borderColor: '#ddd',
+        borderWidth: 1,
+        padding: 10,
+        displayColors: false,
       },
     },
     scales: {
       x: {
         ticks: {
-          color: 'rgba(34, 34, 96, 0.6)',
-          font: {
-            size: 11,
-          },
+          color: '#555',
+          font: { size: 11 },
         },
         grid: {
           color: 'rgba(34, 34, 96, 0.05)',
         },
       },
       y: {
+        beginAtZero: true,
         ticks: {
-          color: 'rgba(34, 34, 96, 0.6)',
-          font: {
-            size: 11,
-          },
+          color: '#555',
+          font: { size: 11 },
+          callback: (value) => `₹${value}`,
         },
         grid: {
           color: 'rgba(34, 34, 96, 0.05)',
@@ -130,18 +183,13 @@ const ChartStyled = styled.div`
     width: 100%;
   }
 
-  /* 📱 Tablet */
   @media (max-width: 900px) {
     height: 320px;
-    padding: 0.8rem;
   }
 
-  /* 📱 Mobile */
   @media (max-width: 600px) {
-    height: 280px;
-    padding: 0.6rem;
-    border-radius: 12px;
+    height: 260px;
   }
 `;
 
-export default Chart;
+export default IncomeExpenseChart;

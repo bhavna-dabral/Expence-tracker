@@ -35,7 +35,7 @@ function Transactions() {
                 </div>
                 <div className="right">
                   <p className="amount">
-                    {item.type === "income" ? "+" : "-"} {dollar} {item.amount}
+                    {item.type === "income" ? "+" : "-"} ₹ {item.amount}
                   </p>
                   <p className="date">{new Date(item.date).toLocaleDateString()}</p>
                 </div>

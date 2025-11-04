@@ -18,7 +18,7 @@ function Expenses() {
         <h1>Expenses</h1>
 
         <h2 className="total-expense">
-          Total Expense: <span>${totalExpenses()}</span>
+          Total Expense: <span>₹{totalExpenses()}</span>
         </h2>
 
         <div className="expense-content">

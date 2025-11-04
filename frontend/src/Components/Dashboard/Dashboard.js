@@ -31,15 +31,15 @@ function Dashboard() {
         <div className="summary-grid">
           <div className="card income">
             <h3>Total Income</h3>
-            <p>{dollar} {totalIncome()}</p>
+            <p>₹{totalIncome()}</p>
           </div>
           <div className="card expense">
             <h3>Total Expense</h3>
-            <p>{dollar} {totalExpenses()}</p>
+            <p><p>₹{totalExpenses()}</p></p>
           </div>
           <div className="card balance">
             <h3>Total Balance</h3>
-            <p>{dollar} {totalBalance()}</p>
+            <p>₹{totalBalance()}</p>
           </div>
         </div>
 
@@ -64,9 +64,10 @@ function Dashboard() {
                     <p className="category">{item.category}</p>
                   </div>
                   <div className="right">
-                    <p className="amount">
-                      {item.type === "income" ? "+" : "-"} {dollar} {item.amount}
-                    </p>
+                  <p className="amount">
+  {item.type === "income" ? "+" : "-"} ₹{item.amount}
+</p>
+
                     <p className="date">
                       {new Date(item.date).toLocaleDateString()}
                     </p>
