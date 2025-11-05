@@ -1,13 +1,13 @@
 // backend/config/brevo.js
 import brevo from "@getbrevo/brevo";
 import dotenv from "dotenv";
-
 dotenv.config();
 
 const apiInstance = new brevo.TransactionalEmailsApi();
-
-// ✅ Set API key the correct way
-apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+apiInstance.setApiKey(
+  brevo.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 export const sendEmail = async (to, subject, htmlContent) => {
   try {
@@ -23,7 +23,7 @@ export const sendEmail = async (to, subject, htmlContent) => {
     const response = await apiInstance.sendTransacEmail(sendSmtpEmail);
 
     console.log(`✅ Email sent successfully to: ${to}`);
-    console.log("📨 Brevo response:", response);
+    console.log("📨 Brevo response:", response.body);
     return response;
   } catch (error) {
     console.error("❌ Email send failed:");
