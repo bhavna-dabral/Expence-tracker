@@ -1,20 +1,27 @@
-// src/api.js
 import axios from "axios";
 
-// Automatically choose backend URL based on environment
+// Determine backend URL safely
+const backendURL =
+  process.env.REACT_APP_BACKEND_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://expence-tracker2.onrender.com"
+    : "http://localhost:5000");
+
+console.log("🔍 Using backend:", backendURL);
+
 const API = axios.create({
-  baseURL: process.env.REACT_APP_BACKEND_URL + "/api", // ✅ no hardcoded localhost
-  withCredentials: true, // ✅ important if you use cookies or sessions
+  baseURL: `${backendURL}/api`,
+  withCredentials: true,
 });
 
-// ✅ Automatically attach token if exists
+// Attach token automatically
 API.interceptors.request.use((req) => {
   const token = localStorage.getItem("token");
   if (token) req.headers.Authorization = `Bearer ${token}`;
   return req;
 });
 
-// ✅ Global error handling (optional but useful)
+// Handle 401 globally
 API.interceptors.response.use(
   (res) => res,
   (error) => {
