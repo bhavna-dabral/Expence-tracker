@@ -20,15 +20,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ===================== Middleware =====================
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ✅ CORS configuration (Fixed for Render)
-// ✅ CORS configuration (Fixed for Render + Vercel)
+// ===================== ✅ CORS CONFIG (MUST BE FIRST) =====================
 const allowedOrigins = [
-  "http://localhost:3000", // local React dev
-  "https://expence-tracker-1rsm.vercel.app", // deployed frontend on Vercel
+  "http://localhost:3000", // local dev
+  "https://expence-tracker-1rsm.vercel.app", // your Vercel frontend
 ];
 
 const corsOptions = {
@@ -45,17 +40,16 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// ✅ Apply CORS middleware globally
 app.use(cors(corsOptions));
 
-// ✅ Handle preflight requests (use same options)
+// Handle preflight requests globally
 app.options("*", cors(corsOptions));
 
+// ===================== Middleware =====================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// ✅ Handle preflight OPTIONS requests
-
-
-// ✅ Serve uploaded files (like avatars)
+// ✅ Serve static uploads (e.g. avatars)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ===================== File Upload Setup =====================
@@ -88,15 +82,15 @@ for (const file of readdirSync(routesDir)) {
   app.use("/api/v1", router);
 }
 
-// ✅ Test endpoint
+// ✅ Root endpoint for Render health check
 app.get("/", (req, res) => {
   res.send("🚀 Expense Tracker API is running successfully!");
 });
 
-// ===================== Server Setup =====================
+// ===================== Server =====================
 const startServer = async () => {
   try {
-    await db(); // Connect to MongoDB
+    await db();
     app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
   } catch (err) {
     console.error("❌ Failed to start server:", err);
@@ -104,9 +98,11 @@ const startServer = async () => {
   }
 };
 
-// Only start the server outside of test mode
 if (process.env.NODE_ENV !== "test") {
   startServer();
 }
 
 export { app, startServer };
+git add app.js
+git commit -m "Fix: proper CORS setup for Render + Vercel"
+git push
