@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 // ✅ CORS configuration (Fixed for Render + Vercel)
 const allowedOrigins = [
   "http://localhost:3000", // local React dev
-  "https://expence-tracker-q1mv.vercel.app", // deployed frontend on Vercel
+  "https://expence-tracker-1rsm.vercel.app", // deployed frontend on Vercel
 ];
 
 const corsOptions = {
