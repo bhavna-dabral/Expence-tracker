@@ -103,6 +103,3 @@ if (process.env.NODE_ENV !== "test") {
 }
 
 export { app, startServer };
-git add app.js
-git commit -m "Fix: proper CORS setup for Render + Vercel"
-git push
