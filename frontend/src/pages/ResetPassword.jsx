@@ -114,7 +114,7 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    minHeight: "100vh",
+    minHeight: "100git add .vh",
     background: "linear-gradient(to right, #f0f4ff, #e4ecfa)",
     padding: "20px",
   },
