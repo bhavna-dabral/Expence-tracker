@@ -40,7 +40,7 @@ function IncomeFormWithHistory() {
     });
   };
 
-  // ✅ Now USED (fixes no-unused-vars error)
+  // Safe filtering of income transactions
   const incomeTransactions = transactions.filter((t) => t?.type === "income");
 
   return (
@@ -78,7 +78,9 @@ function IncomeFormWithHistory() {
 
         <div className="input-control">
           <select value={category} onChange={handleInput("category")} required>
-            <option value="" disabled>Select Category</option>
+            <option value="" disabled>
+              Select Category
+            </option>
             <option value="salary">Salary</option>
             <option value="freelancing">Freelancing</option>
             <option value="investments">Investments</option>
@@ -112,25 +114,7 @@ function IncomeFormWithHistory() {
         </div>
       </form>
 
-      {/* ✅ Income History UI */}
-      <div className="history-section">
-        <h2>Income History</h2>
-        {incomeTransactions.length === 0 ? (
-          <p className="no-data">No income records found.</p>
-        ) : (
-          incomeTransactions.map((inc) => (
-            <div key={inc._id} className="history-item">
-              <div className="left">
-                <span>{inc.title}</span>
-                <span className="date">{new Date(inc.date).toLocaleDateString()}</span>
-              </div>
-              <div className="right">
-                <span className="amount">₹ {inc.amount}</span>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+   
     </FormHistoryStyled>
   );
 }
@@ -144,31 +128,123 @@ const FormHistoryStyled = styled.div`
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    background: rgba(255,255,255,0.7);
+    background: rgba(255, 255, 255, 0.7);
     border-radius: 20px;
     padding: 1.5rem;
-    box-shadow: 0px 1px 15px rgba(0,0,0,0.05);
-  }
+    box-shadow: 0px 1px 15px rgba(0, 0, 0, 0.05);
 
-  .error { color: red; font-weight: 600; text-align: center; }
+    .error {
+      color: var(--color-delete);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .input-control {
+      width: 100%;
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        font-family: inherit;
+        font-size: 0.95rem;
+        padding: 0.65rem 0.9rem;
+        border-radius: 10px;
+        border: 2px solid #fff;
+        outline: none;
+        background: #fcf6f9;
+        color: rgba(34, 34, 96, 0.9);
+        box-shadow: 0px 1px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+
+        &:focus {
+          border-color: var(--color-accent);
+          box-shadow: 0px 0px 6px rgba(245, 102, 146, 0.3);
+        }
+        &::placeholder {
+          color: rgba(34, 34, 96, 0.4);
+        }
+      }
+    }
+
+    .submit-btn {
+      display: flex;
+      justify-content: center;
+      button {
+        width: 100%;
+      }
+    }
+  }
 
   .history-section {
     background: #fcf6f9;
     border-radius: 15px;
     padding: 1rem;
-  }
-
-  .history-item {
     display: flex;
-    justify-content: space-between;
-    padding: 0.5rem;
-    background: #fff;
-    border-radius: 10px;
-    margin-top: 0.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    .no-data {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.05);
+
+      .left {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+      }
+
+      .amount {
+        font-weight: bold;
+        color: green;
+      }
+
+      .date {
+        font-size: 0.75rem;
+        color: #555;
+      }
+    }
   }
 
-  .amount { font-weight: bold; color: green; }
-  .date { font-size: 0.75rem; color: #555; }
+  @media (max-width: 600px) {
+    form {
+      padding: 1rem;
+      gap: 0.8rem;
+    }
+
+    .history-section {
+      padding: 0.75rem;
+    }
+
+    .history-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.25rem;
+    }
+
+    .history-item .right {
+      align-items: flex-start;
+    }
+  }
 `;
 
 export default IncomeFormWithHistory;
