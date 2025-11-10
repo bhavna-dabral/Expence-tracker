@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useGlobalContext } from "../../context/globalContext";
 import { InnerLayout } from "../../styles/Layouts";
-
+import { dateFormat } from "../../utils/dateFormat";   // ✅ Added
 
 function Transactions() {
   const { getIncomes, getExpenses, incomes, expenses } = useGlobalContext();
@@ -12,7 +12,6 @@ function Transactions() {
     getExpenses();
   }, [getIncomes, getExpenses]);
 
-  // Combine both incomes and expenses
   const allTransactions = [...incomes, ...expenses].sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
@@ -37,7 +36,7 @@ function Transactions() {
                   <p className="amount">
                     {item.type === "income" ? "+" : "-"} ₹ {item.amount}
                   </p>
-                  <p className="date">{new Date(item.date).toLocaleDateString()}</p>
+                  <p className="date">{dateFormat(item.date)}</p> {/* ✅ Updated */}
                 </div>
               </div>
             ))}
