@@ -6,8 +6,8 @@ import { useGlobalContext } from "../../context/globalContext";
 import Button from "../Button/Button";
 import { plus } from "../../utils/Icons";
 
-function IncomeFormWithHistory() {
-  const { addIncome, error, setError, transactions = [] } = useGlobalContext();
+function IncomeForm() {
+  const { addIncome, error, setError } = useGlobalContext();
 
   const [inputState, setInputState] = useState({
     title: "",
@@ -40,211 +40,134 @@ function IncomeFormWithHistory() {
     });
   };
 
-  // Safe filtering of income transactions
-  const incomeTransactions = transactions.filter((t) => t?.type === "income");
-
   return (
-    <FormHistoryStyled>
-      <form onSubmit={handleSubmit}>
-        {error && <p className="error">{error}</p>}
+    <FormStyled onSubmit={handleSubmit}>
+      {error && <p className="error">{error}</p>}
 
-        <div className="input-control">
-          <input
-            type="text"
-            value={title}
-            placeholder="Income Title"
-            onChange={handleInput("title")}
-          />
-        </div>
+      <div className="input-control">
+        <input
+          type="text"
+          value={title}
+          placeholder="Income Title"
+          onChange={handleInput("title")}
+        />
+      </div>
 
-        <div className="input-control">
-          <input
-            type="number"
-            value={amount}
-            placeholder="Income Amount"
-            min="0"
-            onChange={handleInput("amount")}
-          />
-        </div>
+      <div className="input-control">
+        <input
+          value={amount}
+          type="number"
+          placeholder="Income Amount"
+          onChange={handleInput("amount")}
+        />
+      </div>
 
-        <div className="input-control date-picker">
-          <DatePicker
-            placeholderText="Select a date"
-            selected={date}
-            dateFormat="dd/MM/yyyy"
-            onChange={(date) => setInputState({ ...inputState, date })}
-          />
-        </div>
+      <div className="input-control">
+        <DatePicker
+          placeholderText="Enter a Date"
+          selected={date}
+          dateFormat="dd/MM/yyyy"
+          onChange={(date) => {
+            setInputState({ ...inputState, date });
+          }}
+        />
+      </div>
 
-        <div className="input-control">
-          <select value={category} onChange={handleInput("category")} required>
-            <option value="" disabled>
-              Select Category
-            </option>
-            <option value="salary">Salary</option>
-            <option value="freelancing">Freelancing</option>
-            <option value="investments">Investments</option>
-            <option value="stocks">Stocks</option>
-            <option value="bitcoin">Bitcoin</option>
-            <option value="bank">Bank Transfer</option>
-            <option value="youtube">YouTube</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+      <div className="selects input-control">
+        <select value={category} onChange={handleInput("category")}>
+          <option value="" disabled>Select Option</option>
+          <option value="salary">Salary</option>
+          <option value="freelancing">Freelancing</option>
+          <option value="investments">Investments</option>
+          <option value="stocks">Stocks</option>
+          <option value="bitcoin">Bitcoin</option>
+          <option value="bank">Bank Transfer</option>
+          <option value="youtube">YouTube</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
 
-        <div className="input-control">
-          <textarea
-            value={description}
-            placeholder="Add a reference or note"
-            onChange={handleInput("description")}
-            rows="4"
-          />
-        </div>
+      <div className="input-control">
+        <textarea
+          name="description"
+          value={description}
+          placeholder="Add a Reference"
+          id="description"
+          cols="30"
+          rows="4"
+          onChange={handleInput("description")}
+        ></textarea>
+      </div>
 
-        <div className="submit-btn">
-          <Button
-            name="Add Income"
-            icon={plus}
-            bPad=".8rem 1.6rem"
-            bRad="30px"
-            bg="var(--color-accent)"
-            color="#fff"
-            type="submit"
-          />
-        </div>
-      </form>
-
-   
-    </FormHistoryStyled>
+      <div className="submit-btn">
+        <Button
+          name="Add Income"
+          icon={plus}
+          bPad=".8rem 1.6rem"
+          bRad="30px"
+          bg="var(--color-accent)"
+          color="#fff"
+        />
+      </div>
+    </FormStyled>
   );
 }
 
-const FormHistoryStyled = styled.div`
+const FormStyled = styled.form`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 2rem;
 
-  form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 20px;
-    padding: 1.5rem;
-    box-shadow: 0px 1px 15px rgba(0, 0, 0, 0.05);
+  input, textarea, select {
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+    border: none;
+    padding: .5rem 1rem;
+    border-radius: 5px;
+    border: 2px solid #fff;
+    background: transparent;
+    resize: none;
+    box-shadow: 0px 1px 15px rgba(0, 0, 0, 0.06);
+    color: rgba(34, 34, 96, 0.9);
 
-    .error {
-      color: var(--color-delete);
-      font-weight: 600;
-      text-align: center;
+    &::placeholder {
+      color: rgba(34, 34, 96, 0.4);
     }
+  }
 
-    .input-control {
+  .input-control {
+    input {
       width: 100%;
-
-      input,
-      textarea,
-      select {
-        width: 100%;
-        font-family: inherit;
-        font-size: 0.95rem;
-        padding: 0.65rem 0.9rem;
-        border-radius: 10px;
-        border: 2px solid #fff;
-        outline: none;
-        background: #fcf6f9;
-        color: rgba(34, 34, 96, 0.9);
-        box-shadow: 0px 1px 10px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-
-        &:focus {
-          border-color: var(--color-accent);
-          box-shadow: 0px 0px 6px rgba(245, 102, 146, 0.3);
-        }
-        &::placeholder {
-          color: rgba(34, 34, 96, 0.4);
-        }
-      }
-    }
-
-    .submit-btn {
-      display: flex;
-      justify-content: center;
-      button {
-        width: 100%;
-      }
     }
   }
 
-  .history-section {
-    background: #fcf6f9;
-    border-radius: 15px;
-    padding: 1rem;
+  .selects {
     display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+    justify-content: flex-end;
 
-    h2 {
-      margin-bottom: 0.5rem;
-    }
-
-    .no-data {
-      text-align: center;
-      color: #888;
-      font-style: italic;
-    }
-
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem;
-      border-radius: 10px;
-      background: #fff;
-      box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.05);
-
-      .left {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .right {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-      }
-
-      .amount {
-        font-weight: bold;
-        color: green;
-      }
-
-      .date {
-        font-size: 0.75rem;
-        color: #555;
+    select {
+      color: rgba(34, 34, 96, 0.9);
+      &:focus, &:active {
+        color: rgba(34, 34, 96, 1);
       }
     }
   }
 
-  @media (max-width: 600px) {
-    form {
-      padding: 1rem;
-      gap: 0.8rem;
+  .submit-btn {
+    button {
+      box-shadow: 0px 1px 15px rgba(0, 0, 0, 0.06);
+      &:hover {
+        background: var(--color-green) !important;
+      }
     }
+  }
 
-    .history-section {
-      padding: 0.75rem;
-    }
-
-    .history-item {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.25rem;
-    }
-
-    .history-item .right {
-      align-items: flex-start;
-    }
+  .error {
+    text-align: center;
+    color: red;
+    font-size: 14px;
   }
 `;
 
-export default IncomeFormWithHistory;
+export default IncomeForm;
