@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import styled from 'styled-components';
-import { useGlobalContext } from '../../context/globalContext';
-import { InnerLayout } from '../../styles/Layouts';
-import Form from '../Form/Form';
-import IncomeItem from '../IncomeItem/IncomeItem';
+import React, { useEffect } from "react";
+import styled from "styled-components";
+import { useGlobalContext } from "../../context/globalContext";
+import { InnerLayout } from "../../styles/Layouts";
+import Form from "../Form/Form";
+import IncomeItem from "../IncomeItem/IncomeItem";
 
 function Income() {
   const { incomes, getIncomes, deleteIncome, totalIncome } = useGlobalContext();
@@ -50,14 +50,41 @@ const IncomeStyled = styled.div`
   display: flex;
   flex-direction: column;
 
-  h1 { text-align: center; margin-bottom: 1rem; }
-  .total-expense { text-align: center; margin-bottom: 1.5rem; span { color: var(--color-delete); font-weight: 700; } }
+  h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
 
-  .income-content { display: flex; gap: 2rem; }
-  .form-container { flex: 1; }
-  .income-list { flex: 2; display: flex; flex-direction: column; gap: 1rem; }
-  .no-expenses { text-align: center; color: rgba(34,34,96,0.6); margin-top: 2rem; }
+  .total-income {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    span {
+      color: var(--color-green);
+      font-weight: 700;
+    }
+  }
+
+  .income-content {
+    display: flex;
+    gap: 2rem;
+  }
+
+  .form-container {
+    flex: 1;
+  }
+
+  .incomes-list {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .no-incomes {
+    text-align: center;
+    color: rgba(34, 34, 96, 0.6);
+    margin-top: 2rem;
+  }
 `;
-
 
 export default Income;
