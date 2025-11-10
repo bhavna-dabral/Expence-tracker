@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import styled from "styled-components";
 import { useGlobalContext } from "../../context/globalContext";
 import { InnerLayout } from "../../styles/Layouts";
@@ -12,13 +12,16 @@ function Income() {
     getIncomes();
   }, [getIncomes]);
 
+  // ✅ Avoid recalculating on every render
+  const incomeTotal = useMemo(() => totalIncome(), [totalIncome]);
+
   return (
     <IncomeStyled>
       <InnerLayout>
         <h1>Incomes</h1>
 
         <h2 className="total-income">
-          Total Income: <span>₹{totalIncome()}</span>
+          Total Income: <span>₹{incomeTotal}</span>
         </h2>
 
         <div className="income-content">
@@ -27,7 +30,7 @@ function Income() {
           </div>
 
           <div className="incomes-list">
-            {incomes.length > 0 ? (
+            {incomes?.length > 0 ? (
               incomes.map((income) => (
                 <IncomeItem
                   key={income._id}
