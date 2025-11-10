@@ -7,7 +7,7 @@ import Button from '../Button/Button';
 import { plus } from '../../utils/Icons';
 
 function ExpenseFormWithHistory() {
-  const { addExpense, error, setError, transactions = [] } = useGlobalContext();
+  const { addExpense, error, setError } = useGlobalContext();
   const [inputState, setInputState] = useState({
     title: '',
     amount: '',
@@ -39,8 +39,6 @@ function ExpenseFormWithHistory() {
       description: '',
     });
   };
-
-  const expenseHistory = transactions.filter(t => t.type === 'expense');
 
   return (
     <FormHistoryStyled>
@@ -111,7 +109,6 @@ function ExpenseFormWithHistory() {
           />
         </div>
 
-        {/* Toggle history button only for mobile */}
         <button
           type="button"
           className="toggle-history-btn"
@@ -120,8 +117,6 @@ function ExpenseFormWithHistory() {
           {showHistory ? 'Hide Expense History' : 'Show Expense History'}
         </button>
       </form>
-
-      
     </FormHistoryStyled>
   );
 }
@@ -148,7 +143,6 @@ const FormHistoryStyled = styled.div`
 
     .input-control {
       width: 100%;
-
       input, textarea, select {
         width: 100%;
         font-family: inherit;
@@ -162,8 +156,7 @@ const FormHistoryStyled = styled.div`
         box-shadow: 0px 1px 10px rgba(0,0,0,0.05);
         transition: all 0.3s ease;
 
-        &:focus { border-color: var(--color-accent); box-shadow: 0px 0px 6px rgba(245,102,146,0.3);}
-        &::placeholder { color: rgba(34,34,96,0.4);}
+        &:focus { border-color: var(--color-accent); }
       }
     }
 
@@ -193,51 +186,8 @@ const FormHistoryStyled = styled.div`
     }
   }
 
-  .history-section {
-    background: #fcf6f9;
-    border-radius: 15px;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-
-    h2 { margin-bottom: 0.5rem; }
-
-    .no-data { text-align: center; color: #888; font-style: italic; }
-
-    .history-list {
-      max-height: 250px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .history-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.5rem;
-      border-radius: 10px;
-      background: #fff;
-      box-shadow: 0px 1px 5px rgba(0,0,0,0.05);
-
-      .left { display: flex; flex-direction: column; }
-      .right { display: flex; flex-direction: column; align-items: flex-end; }
-
-      .amount { font-weight: bold; color: red; }
-      .date { font-size: 0.75rem; color: #555; }
-    }
-  }
-
-  /* Mobile adjustments */
   @media (max-width: 600px) {
-    form { padding: 1rem; gap: 0.8rem; }
     .toggle-history-btn { display: block; }
-
-    .history-section { padding: 0.75rem; }
-    .history-list { max-height: 200px; }
-    .history-item { flex-direction: column; align-items: flex-start; gap: 0.25rem; }
-    .history-item .right { align-items: flex-start; }
   }
 `;
 
