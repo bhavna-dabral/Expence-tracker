@@ -1,7 +1,10 @@
-import React from 'react'
-import styled from 'styled-components'
+import React from 'react';
+import styled from 'styled-components';
 import { dateFormat } from '../../utils/dateFormat';
-import { bitcoin, book, calender, card, circle, clothing, comment, dollar, food, freelance, medical, money, piggy, stocks, takeaway, trash, tv, users, yt } from '../../utils/Icons';
+import {
+  bitcoin, book, calender, card, circle, clothing, comment,
+  food, freelance, medical, money, piggy, stocks, takeaway, trash, tv, users, yt
+} from '../../utils/Icons'; // <-- ✅ removed `dollar`
 import Button from '../Button/Button';
 
 function IncomeItem({
@@ -21,7 +24,7 @@ function IncomeItem({
             case 'salary':
                 return money;
             case 'freelancing':
-                return freelance
+                return freelance;
             case 'investments':
                 return stocks;
             case 'stocks':
@@ -35,9 +38,9 @@ function IncomeItem({
             case 'other':
                 return piggy;
             default:
-                return ''
+                return '';
         }
-    }
+    };
 
     const expenseCatIcon = () => {
         switch (category) {
@@ -58,11 +61,9 @@ function IncomeItem({
             case 'other':
                 return circle;
             default:
-                return ''
+                return '';
         }
-    }
-
-    console.log('type', type)
+    };
 
     return (
         <IncomeItemStyled indicator={indicatorColor}>
@@ -75,17 +76,14 @@ function IncomeItem({
                     <div className="text">
                         <p>₹ {amount}</p>
                         <p>{calender} {dateFormat(date)}</p>
-                        <p>
-                            {comment}
-                            {description}
-                        </p>
+                        <p>{comment}{description}</p>
                     </div>
                     <div className="btn-con">
-                        <Button 
+                        <Button
                             icon={trash}
                             bPad={'1rem'}
                             bRad={'50%'}
-                            bg={'var(--primary-color'}
+                            bg={'var(--primary-color)'}
                             color={'#fff'}
                             iColor={'#fff'}
                             hColor={'var(--color-green)'}
@@ -95,7 +93,7 @@ function IncomeItem({
                 </div>
             </div>
         </IncomeItemStyled>
-    )
+    );
 }
 
 const IncomeItemStyled = styled.form`
@@ -178,7 +176,6 @@ const IncomeItemStyled = styled.form`
     }
   }
 
-  /* 📱 Responsive styles */
   @media (max-width: 600px) {
     flex-direction: column;
     align-items: flex-start;
@@ -188,6 +185,7 @@ const IncomeItemStyled = styled.form`
     .icon {
       width: 60px;
       height: 60px;
+
       i {
         font-size: 2rem;
       }
@@ -218,4 +216,4 @@ const IncomeItemStyled = styled.form`
   }
 `;
 
-export default IncomeItem
+export default IncomeItem;
