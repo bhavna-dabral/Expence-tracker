@@ -8,6 +8,7 @@ import { plus } from '../../utils/Icons';
 
 function ExpenseFormWithHistory() {
   const { addExpense, error, setError } = useGlobalContext();
+
   const [inputState, setInputState] = useState({
     title: '',
     amount: '',
@@ -15,7 +16,6 @@ function ExpenseFormWithHistory() {
     category: '',
     description: '',
   });
-  const [showHistory, setShowHistory] = useState(false);
 
   const { title, amount, date, category, description } = inputState;
 
@@ -108,14 +108,6 @@ function ExpenseFormWithHistory() {
             type="submit"
           />
         </div>
-
-        <button
-          type="button"
-          className="toggle-history-btn"
-          onClick={() => setShowHistory(!showHistory)}
-        >
-          {showHistory ? 'Hide Expense History' : 'Show Expense History'}
-        </button>
       </form>
     </FormHistoryStyled>
   );
@@ -165,29 +157,6 @@ const FormHistoryStyled = styled.div`
       justify-content: center;
       button { width: 100%; }
     }
-
-    .toggle-history-btn {
-      display: none;
-      margin-top: 0.5rem;
-      padding: 0.6rem;
-      font-size: 0.9rem;
-      border-radius: 15px;
-      border: 2px solid var(--color-accent);
-      background: #fff;
-      color: var(--color-accent);
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-
-      &:hover {
-        background: var(--color-accent);
-        color: #fff;
-      }
-    }
-  }
-
-  @media (max-width: 600px) {
-    .toggle-history-btn { display: block; }
   }
 `;
 
