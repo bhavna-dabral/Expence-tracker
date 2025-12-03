@@ -11,13 +11,11 @@
 A **MERN stack Expense Tracker** for managing personal finances.  
 Most core features are implemented; remaining tasks are **user authentication** and **deployment**.
 
-🚀 Live Project : https://expence-tracker-q1mv.vercel.app/
-
 
 --
 
 ## 🏗️ Project Structure
-<img width="1879" height="935" alt="Screenshot (171)" src="https://github.com/user-attachments/assets/3d8ee860-7f35-4d1f-935d-d9188ad874d2" />
+
 
 
 
